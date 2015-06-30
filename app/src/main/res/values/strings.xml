@@ -9,5 +9,6 @@
     <string name="pref_sorting_criteria_default_value">popularity</string>
     <string name="title_activity_movie_details">MovieDetails</string>
     <string name="hello_world">Hello world!</string>
+    <string name="no_overview">No Overview Found</string>
 
 </resources>

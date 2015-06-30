@@ -22,11 +22,11 @@ public class GetMovie extends AsyncTask<String, Void, String> {
 
         // Construct the URL for the OpenWeatherMap query
         // Possible parameters are avaiable at OWM's forecast API page, at
-        Uri builtUri = Uri.parse(Settings.movieApiUrl).buildUpon()
+        Uri builtUri = Uri.parse(Utils.movieApiUrl).buildUpon()
                 .appendPath(movieId)
-                .appendQueryParameter(Settings.apiVarKey, Settings.apiVarValue)
+                .appendQueryParameter(Utils.apiVarKey, Utils.apiVarValue)
                 .build();
-        return Settings.getLinkContent(builtUri);
+        return Utils.getLinkContent(builtUri);
     }
 
     @Override
@@ -40,21 +40,16 @@ public class GetMovie extends AsyncTask<String, Void, String> {
                 MovieDetails.movie.setVoteAverage(movieObject.getInt("vote_average"));
                 MovieDetails.movie.setPosterPath(movieObject.getString("poster_path"));
                 MovieDetails.movie.setOverview(movieObject.getString("overview"));
-                MovieDetails.movie_duration.setText(movieObject.getInt("runtime") + "M");
-                MovieDetails.movie_duration.setVisibility(View.VISIBLE);
                 MovieDetails.movie_year.setVisibility(View.VISIBLE);
                 MovieDetails.movie_rate.setVisibility(View.VISIBLE);
                 MovieDetails.ratingBar.setVisibility(View.VISIBLE);
-                MovieDetails.movie_duration.setVisibility(View.VISIBLE);
                 MovieDetails.black_line.setVisibility(View.VISIBLE);
                 MovieDetails.movie_overview.setVisibility(View.VISIBLE);
-                MovieDetails.progress.dismiss();
             }else{
-                Log.v(Settings.LOG_TAG,"Nullllllllllllllllllllllll");
+                Log.v(Utils.LOG_TAG,"Failed to get movie");
             }
 //            MovieDetails.PlaceholderFragment.setValues();
         } catch (JSONException e) {
-            MovieDetails.progress.dismiss();
             e.printStackTrace();
         }
         super.onPostExecute(jsonString);

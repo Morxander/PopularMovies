@@ -13,7 +13,7 @@ import java.net.URL;
 /**
  * Created by morxander on 6/26/15.
  */
-public class Settings{
+public class Utils {
     static public String baseApiUrl = "http://api.themoviedb.org/3/discover/movie";
     static public String movieApiUrl = "http://api.themoviedb.org/3/movie/";
     static public String sortingVarKey = "sort_by";
@@ -25,7 +25,8 @@ public class Settings{
     static public String imageSize154 = "w154";
     static public String imageSize185 = "w185";
     static public String imageSize342 = "w342";
-    static public String LOG_TAG = "Morad";
+    static public String LOG_TAG = "P_Movies";
+    static public String image_not_found = "http://i.imgur.com/ey9lLmm.png";
     static InputStream inputStream;
     static StringBuffer buffer;
     static HttpURLConnection urlConnection;

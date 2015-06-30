@@ -26,6 +26,7 @@ public class MainActivity extends ActionBarActivity {
     static public ArrayList<String> imagesUrls;
     static ImageAdapter imageAdapter;
     static GridView gridview;
+    static public String no_overview;
     public static ProgressDialog progress;
 
     @Override
@@ -84,6 +85,7 @@ public class MainActivity extends ActionBarActivity {
         public void initComponents(View view) {
             moviesArrayList = new ArrayList<Movie>();
             imagesUrls = new ArrayList<String>();
+            no_overview = getString(R.string.no_overview);
             gridview = (GridView) view.findViewById(R.id.gridview);
             imageAdapter = new ImageAdapter(getActivity());
             gridview.setAdapter(imageAdapter);

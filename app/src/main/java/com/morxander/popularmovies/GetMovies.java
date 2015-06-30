@@ -28,11 +28,11 @@ public class GetMovies extends AsyncTask<String, Void, String> {
 
         // Construct the URL for the OpenWeatherMap query
         // Possible parameters are avaiable at OWM's forecast API page, at
-        Uri builtUri = Uri.parse(Settings.baseApiUrl).buildUpon()
-                .appendQueryParameter(Settings.sortingVarKey, linkParameter)
-                .appendQueryParameter(Settings.apiVarKey, Settings.apiVarValue)
+        Uri builtUri = Uri.parse(Utils.baseApiUrl).buildUpon()
+                .appendQueryParameter(Utils.sortingVarKey, linkParameter)
+                .appendQueryParameter(Utils.apiVarKey, Utils.apiVarValue)
                 .build();
-        return Settings.getLinkContent(builtUri);
+        return Utils.getLinkContent(builtUri);
     }
 
     @Override
@@ -53,19 +53,27 @@ public class GetMovies extends AsyncTask<String, Void, String> {
                 movieItem.setBackdropPath(movie.getString("backdrop_path"));
                 movieItem.setOriginalTitle(movie.getString("original_title"));
                 movieItem.setLanguage(movie.getString("original_language"));
-                movieItem.setOverview(movie.getString("overview"));
-                movieItem.setReleaseDate(movie.getString("release_date"));
+                if (movie.getString("overview") == "null"){
+                    movieItem.setOverview(MainActivity.no_overview);
+                }else {
+                    movieItem.setOverview(movie.getString("overview"));
+                }
+                if (movie.getString("release_date") == "null"){
+                    movieItem.setReleaseDate("Unknown Release Date");
+                }else {
+                    movieItem.setReleaseDate(movie.getString("release_date"));
+                }
                 movieItem.setPopularity(movie.getDouble("popularity"));
                 movieItem.setVoteAverage(movie.getInt("vote_average"));
                 movieItem.setPosterPath(movie.getString("poster_path"));
+                if (movie.getString("poster_path") == "null") {
+                    MainActivity.imagesUrls.add(Utils.image_not_found);
+                    movieItem.setPosterPath(Utils.image_not_found);
+                } else {
+                    MainActivity.imagesUrls.add(Utils.imageBaseURL + Utils.imageSize185 + movie.getString("poster_path"));
+                }
                 MainActivity.moviesArrayList.add(movieItem);
                 movieItem = null;
-                Log.e(LOG_TAG, movie.getString("poster_path"));
-                if (movie.getString("poster_path") == "null") {
-                    MainActivity.imagesUrls.add("http://www.jordans.com/~/media/Jordans%20Redesign/No-image-found.jpg");
-                } else {
-                    MainActivity.imagesUrls.add(Settings.imageBaseURL + Settings.imageSize154 + movie.getString("poster_path"));
-                }
                 MainActivity.progress.dismiss();
                 MainActivity.imageAdapter.notifyDataSetChanged();
             }
@@ -74,6 +82,6 @@ public class GetMovies extends AsyncTask<String, Void, String> {
             MainActivity.progress.dismiss();
             e.printStackTrace();
         }
-        Log.e("Morad", jsonString);
+        Log.e(Utils.LOG_TAG, jsonString);
     }
 }
