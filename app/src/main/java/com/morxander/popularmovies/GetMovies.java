@@ -2,7 +2,7 @@ package com.morxander.popularmovies;
 
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.util.Log;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,56 +32,73 @@ public class GetMovies extends AsyncTask<String, Void, String> {
                 .appendQueryParameter(Utils.sortingVarKey, linkParameter)
                 .appendQueryParameter(Utils.apiVarKey, Utils.apiVarValue)
                 .build();
-        return Utils.getLinkContent(builtUri);
+        String response;
+        try {
+            response  = Utils.getLinkContent(builtUri);
+            return response;
+        }catch (Exception e){
+            MainActivity.toast.setText("Connection Error");
+            MainActivity.toast.setDuration(Toast.LENGTH_SHORT);
+            MainActivity.toast.show();
+            return null;
+        }
+
+
     }
 
     @Override
     protected void onPostExecute(String jsonString) {
         super.onPostExecute(jsonString);
         try {
-            JSONObject moviesObject = new JSONObject(jsonString);
-            JSONArray moviesArray = moviesObject.getJSONArray("results");
-            MainActivity.imagesUrls.clear();
-            MainActivity.moviesArrayList.clear();
+            if (jsonString != null) {
+                JSONObject moviesObject = new JSONObject(jsonString);
+                JSONArray moviesArray = moviesObject.getJSONArray("results");
+                MainActivity.imagesUrls.clear();
+                MainActivity.moviesArrayList.clear();
 //            MainActivity.imageAdapter = new MainActivity.ImageAdapter(MainActivity.);
-            for (int i = 0; i <= moviesArray.length(); i++) {
-                JSONObject movie = moviesArray.getJSONObject(i);
-                Movie movieItem = new Movie();
-                movieItem.setTitle(movie.getString("title"));
-                movieItem.setMovieId(movie.getInt("id"));
-                movieItem.setAdult(movie.getBoolean("adult"));
-                movieItem.setBackdropPath(movie.getString("backdrop_path"));
-                movieItem.setOriginalTitle(movie.getString("original_title"));
-                movieItem.setLanguage(movie.getString("original_language"));
-                if (movie.getString("overview") == "null"){
-                    movieItem.setOverview(MainActivity.no_overview);
-                }else {
-                    movieItem.setOverview(movie.getString("overview"));
+                for (int i = 0; i <= moviesArray.length(); i++) {
+                    JSONObject movie = moviesArray.getJSONObject(i);
+                    Movie movieItem = new Movie();
+                    movieItem.setTitle(movie.getString("title"));
+                    movieItem.setMovieId(movie.getInt("id"));
+                    movieItem.setAdult(movie.getBoolean("adult"));
+                    movieItem.setBackdropPath(movie.getString("backdrop_path"));
+                    movieItem.setOriginalTitle(movie.getString("original_title"));
+                    movieItem.setLanguage(movie.getString("original_language"));
+                    if (movie.getString("overview") == "null") {
+                        movieItem.setOverview(MainActivity.no_overview);
+                    } else {
+                        movieItem.setOverview(movie.getString("overview"));
+                    }
+                    if (movie.getString("release_date") == "null") {
+                        movieItem.setReleaseDate("Unknown Release Date");
+                    } else {
+                        movieItem.setReleaseDate(movie.getString("release_date"));
+                    }
+                    movieItem.setPopularity(movie.getDouble("popularity"));
+                    movieItem.setVoteAverage(movie.getInt("vote_average"));
+                    movieItem.setPosterPath(movie.getString("poster_path"));
+                    if (movie.getString("poster_path") == "null") {
+                        MainActivity.imagesUrls.add(Utils.image_not_found);
+                        movieItem.setPosterPath(Utils.image_not_found);
+                    } else {
+                        MainActivity.imagesUrls.add(Utils.imageBaseURL + Utils.imageSize185 + movie.getString("poster_path"));
+                    }
+                    MainActivity.moviesArrayList.add(movieItem);
+                    movieItem = null;
+                    MainActivity.progress.dismiss();
+                    MainActivity.imageAdapter.notifyDataSetChanged();
                 }
-                if (movie.getString("release_date") == "null"){
-                    movieItem.setReleaseDate("Unknown Release Date");
-                }else {
-                    movieItem.setReleaseDate(movie.getString("release_date"));
-                }
-                movieItem.setPopularity(movie.getDouble("popularity"));
-                movieItem.setVoteAverage(movie.getInt("vote_average"));
-                movieItem.setPosterPath(movie.getString("poster_path"));
-                if (movie.getString("poster_path") == "null") {
-                    MainActivity.imagesUrls.add(Utils.image_not_found);
-                    movieItem.setPosterPath(Utils.image_not_found);
-                } else {
-                    MainActivity.imagesUrls.add(Utils.imageBaseURL + Utils.imageSize185 + movie.getString("poster_path"));
-                }
-                MainActivity.moviesArrayList.add(movieItem);
-                movieItem = null;
+            }else{
                 MainActivity.progress.dismiss();
-                MainActivity.imageAdapter.notifyDataSetChanged();
+                MainActivity.toast.setText("Something Wrong Happend");
+                MainActivity.toast.setDuration(Toast.LENGTH_SHORT);
+                MainActivity.toast.show();
             }
 
         } catch (JSONException e) {
             MainActivity.progress.dismiss();
             e.printStackTrace();
         }
-        Log.e(Utils.LOG_TAG, jsonString);
     }
 }

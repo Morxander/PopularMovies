@@ -28,6 +28,7 @@ public class MainActivity extends ActionBarActivity {
     static GridView gridview;
     static public String no_overview;
     public static ProgressDialog progress;
+    public static Toast toast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,15 +93,14 @@ public class MainActivity extends ActionBarActivity {
             gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> parent, View v,
                                         int position, long id) {
-                    String title = moviesArrayList.get(position).getTitle();
-                    Toast.makeText(getActivity(), title,
-                            Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(getActivity(), MovieDetails.class);
                     intent.putExtra("movie_id",moviesArrayList.get(position).getMovieId());
                     intent.putExtra("movie_position",position);
                     startActivity(intent);
                 }
             });
+            // Temp toast in case of errors
+            toast = Toast.makeText(view.getContext(),"", Toast.LENGTH_SHORT);
         }
 
         public void updateMovies() {
