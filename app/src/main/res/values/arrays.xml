@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <string-array name="pref_sorting_criteria_keys">
+        <item>popularity</item>
+        <item>revenue</item>
+    </string-array>
+
+    <string-array name="pref_sorting_criteria_values">
+        <item>Most Popular</item>
+        <item>Revenue</item>
+    </string-array>
+
+    <string-array name="pref_sorting_order_keys">
+        <item>asc</item>
+        <item>desc</item>
+    </string-array>
+
+    <string-array name="pref_sorting_order_values">
+        <item>Ascending</item>
+        <item>Descending</item>
+    </string-array>
+
+</resources>

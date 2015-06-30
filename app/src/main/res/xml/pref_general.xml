@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ListPreference
+        android:title="Sorting Criteria"
+        android:entries="@array/pref_sorting_criteria_values"
+        android:entryValues="@array/pref_sorting_criteria_keys"
+        android:key="@string/pref_sorting_criteria_key"
+        android:defaultValue="@string/pref_sorting_criteria_default_value"
+        />
+
+    <ListPreference
+        android:title="Sorting Order"
+        android:entries="@array/pref_sorting_order_values"
+        android:entryValues="@array/pref_sorting_order_keys"
+        android:key="@string/pref_sorting_order_key"
+        android:defaultValue="@string/pref_sorting_order_default_value"
+        />
+
+
+</PreferenceScreen>
