@@ -3,12 +3,16 @@ package com.morxander.popularmovies;
 import android.net.Uri;
 import android.util.Log;
 
+import com.activeandroid.query.Select;
+import com.morxander.popularmovies.db.models.MovieDB;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 /**
  * Created by morxander on 6/26/15.
@@ -16,6 +20,8 @@ import java.net.URL;
 public class Utils {
     static public String baseApiUrl = "http://api.themoviedb.org/3/discover/movie";
     static public String movieApiUrl = "http://api.themoviedb.org/3/movie/";
+    static public String movieVideosUrl = "videos";
+    static public String movieReviewsUrl = "reviews";
     static public String sortingVarKey = "sort_by";
     static public String sortingVarValue = "popularity" + "." + "desc";
     static public String apiVarKey = "api_key";
@@ -93,4 +99,13 @@ public class Utils {
         return forecastJsonStr;
     }
 
+    // To check if the movie in the fav table or not
+    public static boolean isFavorite(int id){
+        List<MovieDB> movieDB = new Select().from(MovieDB.class).where("movie_pid = ?",id).execute();
+        if (movieDB.size() > 0){
+            return true;
+        }else {
+            return false;
+        }
+    }
 }

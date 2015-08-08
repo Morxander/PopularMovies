@@ -36,11 +36,9 @@ public class ImageAdapter extends BaseAdapter {
         if (convertView == null) {
             // if it's not recycled, initialize some attributes
             imageView = new ImageView(mContext);
-//                imageView.setLayoutParams(new GridView.LayoutParams(120, 120));
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             imageView.setPadding(0,0,0,0);
             Picasso.with(mContext).load(MainActivity.imagesUrls.get(position)).placeholder(R.drawable.poster).into(imageView);
-//                Glide.with(getApplicationContext()).load(imagesUrls.get(position))..placeholder(R.drawable.abc_ic_go_search_api_mtrl_alpha).into(imageView);
         } else {
             imageView = (ImageView) convertView;
         }

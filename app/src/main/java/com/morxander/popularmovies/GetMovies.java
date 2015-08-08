@@ -4,9 +4,14 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
+import com.activeandroid.query.Select;
+import com.morxander.popularmovies.db.models.MovieDB;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.List;
 
 /**
  * Created by morxander on 6/26/15.
@@ -16,33 +21,32 @@ public class GetMovies extends AsyncTask<String, Void, String> {
 
     @Override
     protected String doInBackground(String... params) {
-        // If there's no zip code, there's nothing to look up.  Verify size of params.
         if (params.length == 0) {
             return null;
         }
-
         String sortingOrder = params[0];
         String sortingCriteria = params[1];
         String linkParameter = sortingCriteria + "." + sortingOrder;
-
-
-        // Construct the URL for the OpenWeatherMap query
-        // Possible parameters are avaiable at OWM's forecast API page, at
-        Uri builtUri = Uri.parse(Utils.baseApiUrl).buildUpon()
-                .appendQueryParameter(Utils.sortingVarKey, linkParameter)
-                .appendQueryParameter(Utils.apiVarKey, Utils.apiVarValue)
-                .build();
-        String response;
-        try {
-            response  = Utils.getLinkContent(builtUri);
-            return response;
-        }catch (Exception e){
-            MainActivity.toast.setText("Connection Error");
-            MainActivity.toast.setDuration(Toast.LENGTH_SHORT);
-            MainActivity.toast.show();
-            return null;
+        // If the sortingCriteria is not favorites movies
+        if (!sortingCriteria.equals("fav")) {
+            Uri builtUri = Uri.parse(Utils.baseApiUrl).buildUpon()
+                    .appendQueryParameter(Utils.sortingVarKey, linkParameter)
+                    .appendQueryParameter(Utils.apiVarKey, Utils.apiVarValue)
+                    .build();
+            String response;
+            try {
+                response = Utils.getLinkContent(builtUri);
+                return response;
+            } catch (Exception e) {
+                MainActivity.toast.setText("Connection Error");
+                MainActivity.toast.setDuration(Toast.LENGTH_SHORT);
+                MainActivity.toast.show();
+                return null;
+            }
+        } else {
+            // If the user selected favorites movies we will return 'fav' to handle it in the @onPostExecute function
+            return "fav";
         }
-
 
     }
 
@@ -50,12 +54,12 @@ public class GetMovies extends AsyncTask<String, Void, String> {
     protected void onPostExecute(String jsonString) {
         super.onPostExecute(jsonString);
         try {
-            if (jsonString != null) {
+            // If it's not favorite movies and the jsonstring not null
+            if (jsonString != null && !jsonString.equals("fav")) {
                 JSONObject moviesObject = new JSONObject(jsonString);
                 JSONArray moviesArray = moviesObject.getJSONArray("results");
                 MainActivity.imagesUrls.clear();
                 MainActivity.moviesArrayList.clear();
-//            MainActivity.imageAdapter = new MainActivity.ImageAdapter(MainActivity.);
                 for (int i = 0; i <= moviesArray.length(); i++) {
                     JSONObject movie = moviesArray.getJSONObject(i);
                     Movie movieItem = new Movie();
@@ -86,18 +90,49 @@ public class GetMovies extends AsyncTask<String, Void, String> {
                     }
                     MainActivity.moviesArrayList.add(movieItem);
                     movieItem = null;
-                    MainActivity.progress.dismiss();
                     MainActivity.imageAdapter.notifyDataSetChanged();
                 }
-            }else{
-                MainActivity.progress.dismiss();
+             // If the user selected favorites movies
+            } else if (jsonString == "fav") {
+                List<MovieDB> movieDB = new Select().from(MovieDB.class).execute();
+                MainActivity.imagesUrls.clear();
+                MainActivity.moviesArrayList.clear();
+                for (int i = 0; i < movieDB.size(); i++) {
+                    Movie movieItem = new Movie();
+                    MovieDB movie = movieDB.get(i);
+                    movieItem.setTitle(movie.getTitle());
+                    movieItem.setMovieId(movie.getMovie_pid());
+                    movieItem.setBackdropPath(movie.getPoster());
+                    if (movie.getOverview() == "null") {
+                        movieItem.setOverview(MainActivity.no_overview);
+                    } else {
+                        movieItem.setOverview(movie.getOverview());
+                    }
+                    if (movie.getRelase_date() == "null") {
+                        movieItem.setReleaseDate("Unknown Release Date");
+                    } else {
+                        movieItem.setReleaseDate(movie.getRelase_date());
+                    }
+                    movieItem.setPopularity(movie.getPopularity());
+                    movieItem.setVoteAverage(movie.getVote_average());
+                    movieItem.setPosterPath(movie.getPoster());
+                    if (movie.getPoster() == "null") {
+                        MainActivity.imagesUrls.add(Utils.image_not_found);
+                        movieItem.setPosterPath(Utils.image_not_found);
+                    } else {
+                        MainActivity.imagesUrls.add(Utils.imageBaseURL + Utils.imageSize185 + movie.getPoster());
+                    }
+                    MainActivity.moviesArrayList.add(movieItem);
+                    movieItem = null;
+                    MainActivity.imageAdapter.notifyDataSetChanged();
+                }
+            } else {
                 MainActivity.toast.setText("Something Wrong Happend");
                 MainActivity.toast.setDuration(Toast.LENGTH_SHORT);
                 MainActivity.toast.show();
             }
 
         } catch (JSONException e) {
-            MainActivity.progress.dismiss();
             e.printStackTrace();
         }
     }

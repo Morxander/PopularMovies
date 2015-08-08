@@ -1,5 +1,7 @@
 package com.morxander.popularmovies;
 
+import java.util.ArrayList;
+
 /**
  * Created by morxander on 6/26/15.
  */
@@ -9,6 +11,8 @@ public class Movie {
     private int movieId,voteAverage,voteCount,duration;
     private double popularity;
     private String backdropPath,language,originalTitle,overview,releaseDate,posterPath,title;
+    ArrayList<MovieVideo> videos = new ArrayList<MovieVideo>();
+    ArrayList<MovieReview> reviews = new ArrayList<MovieReview>();
 
     public int getDuration() {
         return duration;
@@ -120,6 +124,18 @@ public class Movie {
 
     public void setVoteCount(int voteCount) {
         this.voteCount = voteCount;
+    }
+
+    public void addToVideos(MovieVideo video) { this.videos.add(video); }
+
+    public void addToReviews(MovieReview review) { this.reviews.add(review); }
+
+    public ArrayList<MovieVideo> getVideos() {
+        return videos;
+    }
+
+    public ArrayList<MovieReview> getReviews() {
+        return reviews;
     }
 }
 

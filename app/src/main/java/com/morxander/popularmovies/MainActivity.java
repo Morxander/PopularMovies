@@ -29,16 +29,26 @@ public class MainActivity extends ActionBarActivity {
     static public String no_overview;
     public static ProgressDialog progress;
     public static Toast toast;
+    private static final String DETAILFRAGMENT_TAG = "DFTAG";
+    private static boolean mTwoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
+        // Sugar ORM needs at least 1 record to build the database.
+        // So I have to create this empty record on onCreate method then delete it.
+        if (findViewById(R.id.movie_detail_container) != null) {
+            mTwoPane = true;
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_main, new PlaceholderFragment(), DETAILFRAGMENT_TAG)
                     .commit();
+            }else{
+                mTwoPane = false;
+            }
         }
+
     }
 
 
@@ -64,6 +74,8 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+
+
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -77,8 +89,6 @@ public class MainActivity extends ActionBarActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             setHasOptionsMenu(true);
-            progress = ProgressDialog.show(rootView.getContext(), "Loading",
-                    "Please Wait...", true);
             initComponents(rootView);
             return rootView;
         }
@@ -93,10 +103,26 @@ public class MainActivity extends ActionBarActivity {
             gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> parent, View v,
                                         int position, long id) {
+                if (mTwoPane) {
+                    // In two-pane mode, show the detail view in this activity by
+                    // adding or replacing the detail fragment using a
+                    // fragment transaction.
+                    Bundle args = new Bundle();
+                    args.putInt("movie_id", moviesArrayList.get(position).getMovieId());
+                    args.putInt("movie_position",position);
+                    MovieDetails.PlaceholderDetailsFragment fragment = new MovieDetails.PlaceholderDetailsFragment();
+                    fragment.setArguments(args);
+
+                    getActivity().getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.movie_detail_container, fragment, DETAILFRAGMENT_TAG)
+                            .commit();
+                } else {
                     Intent intent = new Intent(getActivity(), MovieDetails.class);
                     intent.putExtra("movie_id",moviesArrayList.get(position).getMovieId());
                     intent.putExtra("movie_position",position);
                     startActivity(intent);
+                }
+
                 }
             });
             // Temp toast in case of errors
