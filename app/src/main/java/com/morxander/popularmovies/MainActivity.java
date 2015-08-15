@@ -83,7 +83,7 @@ public class MainActivity extends ActionBarActivity {
         static ImageAdapter imageAdapter;
         GridView gridview;
         static Toast toast;
-
+        String sortingCriteria,sortingOrder;
         ProgressDialog progress;
 
         public PlaceholderFragment() {
@@ -142,11 +142,11 @@ public class MainActivity extends ActionBarActivity {
         public void updateMovies(View view) {
             SharedPreferences sharedPrefs =
                     PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String sortingOrder = sharedPrefs.getString(
+            sortingOrder = sharedPrefs.getString(
                     getString(R.string.pref_sorting_order_key),
                     getString(R.string.pref_sorting_order_default_value));
 
-            String sortingCriteria = sharedPrefs.getString(getString(R.string.pref_sorting_criteria_key), getString(R.string.pref_sorting_criteria_default_value));
+            sortingCriteria = sharedPrefs.getString(getString(R.string.pref_sorting_criteria_key), getString(R.string.pref_sorting_criteria_default_value));
             new GetMovies().execute(sortingOrder, sortingCriteria, null);
             gridview.setAdapter(imageAdapter);
         }

@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,35 +22,50 @@ public class GetMovie extends AsyncTask<String, Void, String[]> {
         // String Array will contain the moview details ,videos , reviews json
         String[] jsonValues = new String[3];
         String movieId = params[0];
+        try {
+            // Showing the loading dialog
+            MovieDetails.loading.show();
+            // Getting the movie Deatils
+            Uri movieDetails = Uri.parse(Utils.movieApiUrl).buildUpon()
+                    .appendPath(movieId)
+                    .appendQueryParameter(Utils.apiVarKey, Utils.apiVarValue)
+                    .build();
+            // Getting the movie videos
+            Uri movieVideos = Uri.parse(Utils.movieApiUrl).buildUpon()
+                    .appendPath(movieId)
+                    .appendPath(Utils.movieVideosUrl)
+                    .appendQueryParameter(Utils.apiVarKey, Utils.apiVarValue)
+                    .build();
+            // Getting the movie reviews
+            Uri movieReviews = Uri.parse(Utils.movieApiUrl).buildUpon()
+                    .appendPath(movieId)
+                    .appendPath(Utils.movieReviewsUrl)
+                    .appendQueryParameter(Utils.apiVarKey, Utils.apiVarValue)
+                    .build();
+            // Appending the json response to the array
+            jsonValues[0] = Utils.getLinkContent(movieDetails);
+            jsonValues[1] = Utils.getLinkContent(movieVideos);
+            jsonValues[2] = Utils.getLinkContent(movieReviews);
+            if(!jsonValues[0].isEmpty()) {
+                return jsonValues;
+            }else {
+                MovieDetails.loading.dismiss();
+                return null;
+            }
+        } catch (Exception e) {
+            MainActivity.PlaceholderFragment.toast.setText("Connection Error");
+            MainActivity.PlaceholderFragment.toast.setDuration(Toast.LENGTH_SHORT);
+            MainActivity.PlaceholderFragment.toast.show();
+            MovieDetails.loading.dismiss();
+            return null;
+        }
 
-        // Getting the movie Deatils
-        Uri movieDetails = Uri.parse(Utils.movieApiUrl).buildUpon()
-                .appendPath(movieId)
-                .appendQueryParameter(Utils.apiVarKey, Utils.apiVarValue)
-                .build();
-        // Getting the movie videos
-        Uri movieVideos = Uri.parse(Utils.movieApiUrl).buildUpon()
-                .appendPath(movieId)
-                .appendPath(Utils.movieVideosUrl)
-                .appendQueryParameter(Utils.apiVarKey, Utils.apiVarValue)
-                .build();
-        // Getting the movie reviews
-        Uri movieReviews = Uri.parse(Utils.movieApiUrl).buildUpon()
-                .appendPath(movieId)
-                .appendPath(Utils.movieReviewsUrl)
-                .appendQueryParameter(Utils.apiVarKey, Utils.apiVarValue)
-                .build();
-        // Appending the json response to the array
-        jsonValues[0] = Utils.getLinkContent(movieDetails);
-        jsonValues[1] = Utils.getLinkContent(movieVideos);
-        jsonValues[2] = Utils.getLinkContent(movieReviews);
-        return jsonValues;
     }
 
     @Override
     protected void onPostExecute(String[] jsonValues) {
         try {
-            if(jsonValues != null) {
+            if(jsonValues != null && !jsonValues[0].isEmpty()) {
                 // The movie Deails
                 JSONObject movieObject = new JSONObject(jsonValues[0]);
                 MovieDetails.movie.setTitle(movieObject.getString("title"));
@@ -90,10 +106,17 @@ public class GetMovie extends AsyncTask<String, Void, String[]> {
                 }
                 MovieDetails.PlaceholderDetailsFragment.setValues();
             }else{
-                Log.v(Utils.LOG_TAG,"Failed to get movie");
+                MovieDetails.movie_poster.setVisibility(View.INVISIBLE);
+                MovieDetails.ratingBar.setVisibility(View.INVISIBLE);
+                MovieDetails.favButton.setVisibility(View.INVISIBLE);
+                MovieDetails.movie_title.setVisibility(View.INVISIBLE);
+                MovieDetails.reviews_header.setVisibility(View.INVISIBLE);
+                MovieDetails.black_line.setVisibility(View.INVISIBLE);
+                MovieDetails.black_line2.setVisibility(View.INVISIBLE);
+                MovieDetails.black_line3.setVisibility(View.INVISIBLE);
+                Log.v(Utils.LOG_TAG, "Failed to get movie");
             }
             MovieDetails.loading.dismiss();
-//            MovieDetails.PlaceholderDetailsFragment.setValues();
         } catch (JSONException e) {
             e.printStackTrace();
             Log.v("morxander",jsonValues[2]);

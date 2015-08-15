@@ -23,6 +23,7 @@ import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.activeandroid.query.Select;
 import com.morxander.popularmovies.db.models.MovieDB;
@@ -37,10 +38,10 @@ public class MovieDetails extends ActionBarActivity {
     public static Movie movie;
     public static int movieID, moviePosition;
     public static Intent intent;
-    public static TextView movie_title, movie_year,movie_rate,movie_overview,movie_runtime,reviews;
+    public static TextView movie_title, movie_year,movie_rate,movie_overview,movie_runtime,reviews,reviews_header;
     public static RatingBar ratingBar;
     public static ImageView movie_poster;
-    public static View black_line;
+    public static View black_line,black_line2,black_line3;
     public static ProgressDialog loading;
     public static Bundle arguments;
     public static Button favButton;
@@ -93,6 +94,8 @@ public class MovieDetails extends ActionBarActivity {
      */
     public static class PlaceholderDetailsFragment extends Fragment {
 
+        static Toast toast;
+
         public PlaceholderDetailsFragment() {
         }
 
@@ -126,7 +129,7 @@ public class MovieDetails extends ActionBarActivity {
             }
             loading = ProgressDialog.show(rootView.getContext(), "Loading",
                     "Please Wait...", true);
-            loading.show();
+
             // Setting the views
             new GetMovie().execute(String.valueOf(movie.getMovieId()));
             movie_title = (TextView)rootView.findViewById(R.id.movie_title);
@@ -136,7 +139,10 @@ public class MovieDetails extends ActionBarActivity {
             movie_poster = (ImageView)rootView.findViewById(R.id.movie_poster);
             ratingBar = (RatingBar)rootView.findViewById(R.id.ratingBar);
             movie_overview = (TextView)rootView.findViewById(R.id.movie_overview);
+            reviews_header = (TextView)rootView.findViewById(R.id.reviews_header);
             black_line = (View)rootView.findViewById(R.id.black_line);
+            black_line2 = (View)rootView.findViewById(R.id.black_line2);
+            black_line3 = (View)rootView.findViewById(R.id.black_line3);
             favButton = (Button)rootView.findViewById(R.id.bt_fav);
             videosList = (ListView)rootView.findViewById(R.id.videos_list);
             reviews = (TextView)rootView.findViewById(R.id.reviews);
