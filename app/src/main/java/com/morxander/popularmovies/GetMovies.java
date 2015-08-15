@@ -38,9 +38,9 @@ public class GetMovies extends AsyncTask<String, Void, String> {
                 response = Utils.getLinkContent(builtUri);
                 return response;
             } catch (Exception e) {
-                MainActivity.toast.setText("Connection Error");
-                MainActivity.toast.setDuration(Toast.LENGTH_SHORT);
-                MainActivity.toast.show();
+                MainActivity.PlaceholderFragment.toast.setText("Connection Error");
+                MainActivity.PlaceholderFragment.toast.setDuration(Toast.LENGTH_SHORT);
+                MainActivity.PlaceholderFragment.toast.show();
                 return null;
             }
         } else {
@@ -90,7 +90,7 @@ public class GetMovies extends AsyncTask<String, Void, String> {
                     }
                     MainActivity.moviesArrayList.add(movieItem);
                     movieItem = null;
-                    MainActivity.imageAdapter.notifyDataSetChanged();
+                    MainActivity.PlaceholderFragment.imageAdapter.notifyDataSetChanged();
                 }
              // If the user selected favorites movies
             } else if (jsonString == "fav") {
@@ -124,12 +124,12 @@ public class GetMovies extends AsyncTask<String, Void, String> {
                     }
                     MainActivity.moviesArrayList.add(movieItem);
                     movieItem = null;
-                    MainActivity.imageAdapter.notifyDataSetChanged();
+                    MainActivity.PlaceholderFragment.imageAdapter.notifyDataSetChanged();
                 }
             } else {
-                MainActivity.toast.setText("Something Wrong Happend");
-                MainActivity.toast.setDuration(Toast.LENGTH_SHORT);
-                MainActivity.toast.show();
+                MainActivity.PlaceholderFragment.toast.setText("Something Wrong Happend");
+                MainActivity.PlaceholderFragment.toast.setDuration(Toast.LENGTH_SHORT);
+                MainActivity.PlaceholderFragment.toast.show();
             }
 
         } catch (JSONException e) {

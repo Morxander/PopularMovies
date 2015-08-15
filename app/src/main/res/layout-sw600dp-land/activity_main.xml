@@ -17,13 +17,13 @@
         android:name="com.morxander.popularmovies.MainActivity$PlaceholderFragment"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="3"
+        android:layout_weight="4"
         tools:layout="@layout/fragment_main" />
 
     <FrameLayout
         android:id="@+id/movie_detail_container"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="4" />
+        android:layout_weight="3" />
 
 </LinearLayout>

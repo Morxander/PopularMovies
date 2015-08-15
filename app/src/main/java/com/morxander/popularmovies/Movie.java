@@ -1,11 +1,14 @@
 package com.morxander.popularmovies;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.ArrayList;
 
 /**
  * Created by morxander on 6/26/15.
  */
-public class Movie {
+public class Movie  implements Parcelable {
     boolean isAdult,isVideo;
 
     private int movieId,voteAverage,voteCount,duration;
@@ -136,6 +139,16 @@ public class Movie {
 
     public ArrayList<MovieReview> getReviews() {
         return reviews;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
     }
 }
 

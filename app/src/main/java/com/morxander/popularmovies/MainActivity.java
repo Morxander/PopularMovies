@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
@@ -24,11 +25,7 @@ public class MainActivity extends ActionBarActivity {
 
     static public ArrayList<Movie> moviesArrayList;
     static public ArrayList<String> imagesUrls;
-    static ImageAdapter imageAdapter;
-    static GridView gridview;
     static public String no_overview;
-    public static ProgressDialog progress;
-    public static Toast toast;
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
     private static boolean mTwoPane;
 
@@ -36,17 +33,13 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // Sugar ORM needs at least 1 record to build the database.
-        // So I have to create this empty record on onCreate method then delete it.
         if (findViewById(R.id.movie_detail_container) != null) {
             mTwoPane = true;
-            if (savedInstanceState == null) {
                 getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_main, new PlaceholderFragment(), DETAILFRAGMENT_TAG)
+                    .replace(R.id.fragment_main, new PlaceholderFragment())
                     .commit();
-            }else{
-                mTwoPane = false;
-            }
+        }else{
+            mTwoPane = false;
         }
 
     }
@@ -75,11 +68,23 @@ public class MainActivity extends ActionBarActivity {
     }
 
 
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+        Bundle bundle = new Bundle();
+//        outState.putAll(outPersistentState.getB
+    }
 
     /**
      * A placeholder fragment containing a simple view.
      */
     public static class PlaceholderFragment extends Fragment {
+
+        static ImageAdapter imageAdapter;
+        GridView gridview;
+        static Toast toast;
+
+        ProgressDialog progress;
 
         public PlaceholderFragment() {
         }
@@ -87,9 +92,14 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             setHasOptionsMenu(true);
-            initComponents(rootView);
+            if (savedInstanceState == null) {
+                initComponents(rootView);
+            }
+            updateMovies(rootView);
+            setRetainInstance(true);
             return rootView;
         }
 
@@ -129,7 +139,7 @@ public class MainActivity extends ActionBarActivity {
             toast = Toast.makeText(view.getContext(),"", Toast.LENGTH_SHORT);
         }
 
-        public void updateMovies() {
+        public void updateMovies(View view) {
             SharedPreferences sharedPrefs =
                     PreferenceManager.getDefaultSharedPreferences(getActivity());
             String sortingOrder = sharedPrefs.getString(
@@ -166,9 +176,24 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public void onResume() {
             Toast.makeText(getActivity(), "Updating", Toast.LENGTH_SHORT).show();
-            initComponents(getView());
-            updateMovies();
+            updateMovies(getView());
             super.onResume();
         }
+
+
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList("moviesList", moviesArrayList);
+        outState.putStringArrayList("imagesLinks",imagesUrls);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        moviesArrayList = savedInstanceState.getParcelableArrayList("moviesList");
+        imagesUrls = savedInstanceState.getStringArrayList("imagesLinks");
     }
 }

@@ -9,7 +9,7 @@ import com.morxander.popularmovies.Movie;
  * Created by morxander on 8/8/15.
  * This the movie Model for the DataBase
  */
-@Table(name = "Categories")
+@Table(name = "movies")
 public class MovieDB extends Model {
     @Column(name = "movie_pid")
     int movie_pid;
