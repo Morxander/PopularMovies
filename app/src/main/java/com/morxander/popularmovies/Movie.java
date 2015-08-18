@@ -148,6 +148,9 @@ public class Movie  implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(backdropPath);
+        dest.writeString(language);
+        dest.writeString(originalTitle);
 
     }
 }

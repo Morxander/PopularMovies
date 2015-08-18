@@ -13,13 +13,14 @@ import com.squareup.picasso.Picasso;
  */
 public class ImageAdapter extends BaseAdapter {
     private Context mContext;
-
-    public ImageAdapter(Context c) {
+    private MainActivity.PlaceholderFragment mainFragment;
+    public ImageAdapter(Context c,MainActivity.PlaceholderFragment mainFragment) {
         mContext = c;
+        this.mainFragment = mainFragment;
     }
 
     public int getCount() {
-        return MainActivity.imagesUrls.size();
+        return mainFragment.imagesUrls.size();
     }
 
     public Object getItem(int position) {
@@ -38,7 +39,7 @@ public class ImageAdapter extends BaseAdapter {
             imageView = new ImageView(mContext);
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             imageView.setPadding(0,0,0,0);
-            Picasso.with(mContext).load(MainActivity.imagesUrls.get(position)).placeholder(R.drawable.poster).into(imageView);
+            Picasso.with(mContext).load(mainFragment.imagesUrls.get(position)).placeholder(R.drawable.poster).into(imageView);
         } else {
             imageView = (ImageView) convertView;
         }

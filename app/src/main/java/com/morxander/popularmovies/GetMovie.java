@@ -2,9 +2,6 @@ package com.morxander.popularmovies;
 
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,18 +10,20 @@ import org.json.JSONObject;
 /**
  * Created by morxander on 6/26/15.
  */
-public class GetMovie extends AsyncTask<String, Void, String[]> {
+public class GetMovie extends AsyncTask<Object, Void, String[]> {
+    private DeatilsJobsInterface listener;
     @Override
-    protected String[] doInBackground(String... params) {
+    protected String[] doInBackground(Object... params) {
         if (params.length == 0) {
             return null;
         }
         // String Array will contain the moview details ,videos , reviews json
         String[] jsonValues = new String[3];
-        String movieId = params[0];
+        String movieId = (String) params[0];
+        listener = (DeatilsJobsInterface) params[1];
         try {
             // Showing the loading dialog
-            MovieDetails.loading.show();
+            listener.showLoading();
             // Getting the movie Deatils
             Uri movieDetails = Uri.parse(Utils.movieApiUrl).buildUpon()
                     .appendPath(movieId)
@@ -49,14 +48,12 @@ public class GetMovie extends AsyncTask<String, Void, String[]> {
             if(!jsonValues[0].isEmpty()) {
                 return jsonValues;
             }else {
-                MovieDetails.loading.dismiss();
+                listener.dismissLoading();
                 return null;
             }
         } catch (Exception e) {
-            MainActivity.PlaceholderFragment.toast.setText("Connection Error");
-            MainActivity.PlaceholderFragment.toast.setDuration(Toast.LENGTH_SHORT);
-            MainActivity.PlaceholderFragment.toast.show();
-            MovieDetails.loading.dismiss();
+            listener.onConnectionError();
+            listener.dismissLoading();
             return null;
         }
 
@@ -68,17 +65,15 @@ public class GetMovie extends AsyncTask<String, Void, String[]> {
             if(jsonValues != null && !jsonValues[0].isEmpty()) {
                 // The movie Deails
                 JSONObject movieObject = new JSONObject(jsonValues[0]);
-                MovieDetails.movie.setTitle(movieObject.getString("title"));
-                MovieDetails.movie.setReleaseDate(movieObject.getString("release_date"));
-                MovieDetails.movie.setDuration(movieObject.getInt("runtime"));
-                MovieDetails.movie.setVoteAverage(movieObject.getInt("vote_average"));
-                MovieDetails.movie.setPosterPath(movieObject.getString("poster_path"));
-                MovieDetails.movie.setOverview(movieObject.getString("overview"));
-                MovieDetails.movie_year.setVisibility(View.VISIBLE);
-                MovieDetails.movie_rate.setVisibility(View.VISIBLE);
-                MovieDetails.ratingBar.setVisibility(View.VISIBLE);
-                MovieDetails.black_line.setVisibility(View.VISIBLE);
-                MovieDetails.movie_overview.setVisibility(View.VISIBLE);
+                Movie movie = new Movie();
+                movie.setMovieId(movieObject.getInt("id"));
+                movie.setTitle(movieObject.getString("title"));
+                movie.setReleaseDate(movieObject.getString("release_date"));
+                movie.setDuration(movieObject.getInt("runtime"));
+                movie.setVoteAverage(movieObject.getInt("vote_average"));
+                movie.setPosterPath(movieObject.getString("poster_path"));
+                movie.setOverview(movieObject.getString("overview"));
+                listener.setViewVisible();
                 // The Movie Videos
                 JSONObject movieVideos = new JSONObject(jsonValues[1]);
                 JSONArray videos = movieVideos.getJSONArray("results");
@@ -88,7 +83,7 @@ public class GetMovie extends AsyncTask<String, Void, String[]> {
                         String site = videoDeatils.getString("site");
                         String key = videoDeatils.getString("key");
                         MovieVideo video = new MovieVideo(site, key);
-                        MovieDetails.movie.addToVideos(video);
+                        movie.addToVideos(video);
                     }
                 }
                 // The Movie Reviews
@@ -101,26 +96,17 @@ public class GetMovie extends AsyncTask<String, Void, String[]> {
                         String content = reviewDeatils.getString("content");
                         String url = reviewDeatils.getString("url");
                         MovieReview review = new MovieReview(author, content, url);
-                        MovieDetails.movie.addToReviews(review);
+                        movie.addToReviews(review);
                     }
                 }
-                MovieDetails.PlaceholderDetailsFragment.setValues();
-            }else{
-                MovieDetails.movie_poster.setVisibility(View.INVISIBLE);
-                MovieDetails.ratingBar.setVisibility(View.INVISIBLE);
-                MovieDetails.favButton.setVisibility(View.INVISIBLE);
-                MovieDetails.movie_title.setVisibility(View.INVISIBLE);
-                MovieDetails.reviews_header.setVisibility(View.INVISIBLE);
-                MovieDetails.black_line.setVisibility(View.INVISIBLE);
-                MovieDetails.black_line2.setVisibility(View.INVISIBLE);
-                MovieDetails.black_line3.setVisibility(View.INVISIBLE);
-                Log.v(Utils.LOG_TAG, "Failed to get movie");
+                listener.setMovie(movie);
+                listener.setValues();
+
             }
-            MovieDetails.loading.dismiss();
+            listener.dismissLoading();
         } catch (JSONException e) {
             e.printStackTrace();
-            Log.v("morxander",jsonValues[2]);
-            MovieDetails.loading.dismiss();
+            listener.dismissLoading();
         }
         super.onPostExecute(jsonValues);
     }

@@ -1,5 +1,7 @@
 package com.morxander.popularmovies.db.models;
 
+import android.util.Log;
+
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
@@ -46,6 +48,7 @@ public class MovieDB extends Model {
 
     public MovieDB(Movie movie){
         this.movie_pid = movie.getMovieId();
+        Log.v("Mark Fav ", String.valueOf(movie.getMovieId()));
         this.title = movie.getOriginalTitle();
         this.poster = movie.getPosterPath();
         this.relase_date = movie.getReleaseDate();

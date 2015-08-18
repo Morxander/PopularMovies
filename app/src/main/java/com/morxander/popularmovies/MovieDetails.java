@@ -10,6 +10,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,21 +36,6 @@ import java.util.ArrayList;
 public class MovieDetails extends ActionBarActivity {
 
 
-    public static Movie movie;
-    public static int movieID, moviePosition;
-    public static Intent intent;
-    public static TextView movie_title, movie_year,movie_rate,movie_overview,movie_runtime,reviews,reviews_header;
-    public static RatingBar ratingBar;
-    public static ImageView movie_poster;
-    public static View black_line,black_line2,black_line3;
-    public static ProgressDialog loading;
-    public static Bundle arguments;
-    public static Button favButton;
-    public static ListView videosList;
-    public static ArrayAdapter<String> arrayAdapter;
-    public static ArrayList<String> arrayList;
-    public static ScrollView scrollview;
-    public static LinearLayout videosContainer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,36 +52,30 @@ public class MovieDetails extends ActionBarActivity {
     }
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_movie_details, menu);
-        return true;
-    }
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderDetailsFragment extends Fragment {
+    public static class PlaceholderDetailsFragment extends Fragment implements DeatilsJobsInterface{
 
         static Toast toast;
-
+        TextView movie_title, movie_year,movie_rate,movie_overview,movie_runtime,reviews,reviews_header;
+        RatingBar ratingBar;
+        ImageView movie_poster;
+        ScrollView scrollview;
+        LinearLayout videosContainer;
+        Bundle arguments;
+        Button favButton;
+        ListView videosList;
+        int movieID, moviePosition;
+        Intent intent;
+        View black_line,black_line2,black_line3;
+        Movie movie;
+        ProgressDialog loading;
+        ArrayAdapter<String> arrayAdapter;
+        ArrayList<String> arrayList;
+        ArrayList<Movie> moviesArrayList;
+        int movie_id,movie_position;
+        boolean twoPane;
         public PlaceholderDetailsFragment() {
         }
 
@@ -108,30 +88,22 @@ public class MovieDetails extends ActionBarActivity {
             WindowManager wm = (WindowManager) rootView.getContext().getSystemService(Context.WINDOW_SERVICE);
             Display display = wm.getDefaultDisplay();
             initComponents(rootView);
-            setPoster(rootView);
+            if(savedInstanceState == null){
+                movie = new Movie();
+                getMovie(rootView);
+                setPoster(rootView);
+            }else{
+                movie = savedInstanceState.getParcelable("movie");
+                setPoster(rootView);
+                setValues();
+            }
+            setRetainInstance(true);
             return rootView;
         }
-        // This is the init metho
-        public void initComponents(View rootView){
-            // Current Moview Object
-            movie = new Movie();
-            arguments = getArguments();
-            if (arguments.getInt("movie_id") > 0)
-            {
-                int movie_id = arguments.getInt("movie_id");
-                int movie_position = arguments.getInt("movie_position");
-                movie = MainActivity.moviesArrayList.get(movie_position);
-            }else {
-                MovieDetails.intent = getActivity().getIntent();
-                int movie_id = intent.getIntExtra("movie_id", 0);
-                int movie_position = intent.getIntExtra("movie_position", 0);
-                movie = MainActivity.moviesArrayList.get(movie_position);
-            }
-            loading = ProgressDialog.show(rootView.getContext(), "Loading",
-                    "Please Wait...", true);
 
-            // Setting the views
-            new GetMovie().execute(String.valueOf(movie.getMovieId()));
+        // This is the init method
+        @Override
+        public void initComponents(View rootView){
             movie_title = (TextView)rootView.findViewById(R.id.movie_title);
             movie_year = (TextView)rootView.findViewById(R.id.movie_year);
             movie_runtime = (TextView)rootView.findViewById(R.id.runtime);
@@ -160,7 +132,35 @@ public class MovieDetails extends ActionBarActivity {
 
         }
 
-        public static void setPoster(View rootView){
+        public void getMovie(View rootView){
+            // Current Moview Object
+            arguments = getArguments();
+            if (arguments.getInt("movie_id") > 0)
+            {
+                movie_id = arguments.getInt("movie_id");
+                movie_position = arguments.getInt("movie_position");
+                moviesArrayList = arguments.getParcelableArrayList("moviesList");
+                movie = moviesArrayList.get(movie_position);
+                twoPane = true;
+
+            }else {
+                intent = getActivity().getIntent();
+                movie_id = intent.getIntExtra("movie_id", 0);
+                movie_position = intent.getIntExtra("movie_position", 0);
+                movie = new Movie();
+                movie.setTitle(intent.getStringExtra("movie_title"));
+                movie.setPosterPath(intent.getStringExtra("movie_poster"));
+                twoPane = false;
+            }
+            loading = ProgressDialog.show(rootView.getContext(), "Loading",
+                    "Please Wait...", true);
+
+            // Setting the views
+            new GetMovie().execute(String.valueOf(movie_id),this);
+        }
+
+        @Override
+        public void setPoster(View rootView){
             String movie_poster_url;
             if (movie.getPosterPath() == Utils.image_not_found) {
                 movie_poster_url = Utils.image_not_found;
@@ -171,8 +171,52 @@ public class MovieDetails extends ActionBarActivity {
             movie_poster.setVisibility(View.VISIBLE);
         }
 
+        @Override
+        public void showLoading() {
+            loading.show();
+        }
+
+        @Override
+        public void dismissLoading() {
+            loading.dismiss();
+        }
+
+        @Override
+        public void setMovie(Movie movie) {
+            this.movie = movie;
+        }
+
+        @Override
+        public void setViewVisible() {
+            movie_year.setVisibility(View.VISIBLE);
+            movie_rate.setVisibility(View.VISIBLE);
+            ratingBar.setVisibility(View.VISIBLE);
+            black_line.setVisibility(View.VISIBLE);
+            movie_overview.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        public void setViewInvisible() {
+            movie_poster.setVisibility(View.INVISIBLE);
+            ratingBar.setVisibility(View.INVISIBLE);
+            favButton.setVisibility(View.INVISIBLE);
+            movie_title.setVisibility(View.INVISIBLE);
+            reviews_header.setVisibility(View.INVISIBLE);
+            black_line.setVisibility(View.INVISIBLE);
+            black_line2.setVisibility(View.INVISIBLE);
+            black_line3.setVisibility(View.INVISIBLE);
+        }
+
+        @Override
+        public void onConnectionError() {
+            toast.setText("Connection Error");
+            toast.setDuration(Toast.LENGTH_SHORT);
+            toast.show();
+        }
+
         // Setting the values of the views
-        public static void setValues(){
+        @Override
+        public void setValues(){
             movie_title.setText(movie.getTitle());
             movie_runtime.setText(String.valueOf(movie.getDuration()) + "M");
             movie_year.setText(movie.getReleaseDate());
@@ -223,6 +267,36 @@ public class MovieDetails extends ActionBarActivity {
             }else{
                 reviews.setText("There are no reviews");
             }
+        }
+
+        @Override
+        public void onSaveInstanceState(Bundle outState) {
+            super.onSaveInstanceState(outState);
+            outState.putParcelable("movie",movie);
+        }
+
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+            if(!twoPane) {
+                inflater.inflate(R.menu.main_fragment, menu);
+            }
+        }
+
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item) {
+            // Handle action bar item clicks here. The action bar will
+            // automatically handle clicks on the Home/Up button, so long
+            // as you specify a parent activity in AndroidManifest.xml.
+            int id = item.getItemId();
+
+            //noinspection SimplifiableIfStatement
+            if (id == R.id.action_fragment_settings && !twoPane) {
+                Intent intent = new Intent(getActivity(), SettingsActivity.class);
+                startActivity(intent);
+                return true;
+            }
+
+            return super.onOptionsItemSelected(item);
         }
     }
 }

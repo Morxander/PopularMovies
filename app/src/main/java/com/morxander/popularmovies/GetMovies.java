@@ -2,7 +2,6 @@ package com.morxander.popularmovies;
 
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.widget.Toast;
 
 import com.activeandroid.query.Select;
 import com.morxander.popularmovies.db.models.MovieDB;
@@ -16,16 +15,18 @@ import java.util.List;
 /**
  * Created by morxander on 6/26/15.
  */
-public class GetMovies extends AsyncTask<String, Void, String> {
+public class GetMovies extends AsyncTask<Object, Void, String> {
     String LOG_TAG = "Morad";
-
+    private MainJobsInterface listener;
+    String no_overview;
     @Override
-    protected String doInBackground(String... params) {
+    protected String doInBackground(Object... params) {
         if (params.length == 0) {
             return null;
         }
-        String sortingOrder = params[0];
-        String sortingCriteria = params[1];
+        String sortingOrder = params[0].toString();
+        String sortingCriteria = params[1].toString();
+        this.listener = (MainJobsInterface) params[2];
         String linkParameter = sortingCriteria + "." + sortingOrder;
         // If the sortingCriteria is not favorites movies
         if (!sortingCriteria.equals("fav")) {
@@ -38,9 +39,7 @@ public class GetMovies extends AsyncTask<String, Void, String> {
                 response = Utils.getLinkContent(builtUri);
                 return response;
             } catch (Exception e) {
-                MainActivity.PlaceholderFragment.toast.setText("Connection Error");
-                MainActivity.PlaceholderFragment.toast.setDuration(Toast.LENGTH_SHORT);
-                MainActivity.PlaceholderFragment.toast.show();
+                listener.onConnectionError();
                 return null;
             }
         } else {
@@ -56,10 +55,11 @@ public class GetMovies extends AsyncTask<String, Void, String> {
         try {
             // If it's not favorite movies and the jsonstring not null
             if (jsonString != null && !jsonString.equals("fav")) {
+                no_overview = "No Overview found";
                 JSONObject moviesObject = new JSONObject(jsonString);
                 JSONArray moviesArray = moviesObject.getJSONArray("results");
-                MainActivity.imagesUrls.clear();
-                MainActivity.moviesArrayList.clear();
+                listener.clearImagesUrls();
+                listener.clearMoviesList();
                 for (int i = 0; i <= moviesArray.length(); i++) {
                     JSONObject movie = moviesArray.getJSONObject(i);
                     Movie movieItem = new Movie();
@@ -70,7 +70,7 @@ public class GetMovies extends AsyncTask<String, Void, String> {
                     movieItem.setOriginalTitle(movie.getString("original_title"));
                     movieItem.setLanguage(movie.getString("original_language"));
                     if (movie.getString("overview") == "null") {
-                        movieItem.setOverview(MainActivity.no_overview);
+                        movieItem.setOverview(no_overview);
                     } else {
                         movieItem.setOverview(movie.getString("overview"));
                     }
@@ -83,20 +83,20 @@ public class GetMovies extends AsyncTask<String, Void, String> {
                     movieItem.setVoteAverage(movie.getInt("vote_average"));
                     movieItem.setPosterPath(movie.getString("poster_path"));
                     if (movie.getString("poster_path") == "null") {
-                        MainActivity.imagesUrls.add(Utils.image_not_found);
+                        listener.addToImagesUrls(Utils.image_not_found);
                         movieItem.setPosterPath(Utils.image_not_found);
                     } else {
-                        MainActivity.imagesUrls.add(Utils.imageBaseURL + Utils.imageSize185 + movie.getString("poster_path"));
+                        listener.addToImagesUrls(Utils.imageBaseURL + Utils.imageSize185 + movie.getString("poster_path"));
                     }
-                    MainActivity.moviesArrayList.add(movieItem);
+                    listener.addToMoviesList(movieItem);
                     movieItem = null;
-                    MainActivity.PlaceholderFragment.imageAdapter.notifyDataSetChanged();
+                    listener.notifyAdapter();
                 }
              // If the user selected favorites movies
             } else if (jsonString == "fav") {
                 List<MovieDB> movieDB = new Select().from(MovieDB.class).execute();
-                MainActivity.imagesUrls.clear();
-                MainActivity.moviesArrayList.clear();
+                listener.clearImagesUrls();
+                listener.clearMoviesList();
                 for (int i = 0; i < movieDB.size(); i++) {
                     Movie movieItem = new Movie();
                     MovieDB movie = movieDB.get(i);
@@ -104,7 +104,7 @@ public class GetMovies extends AsyncTask<String, Void, String> {
                     movieItem.setMovieId(movie.getMovie_pid());
                     movieItem.setBackdropPath(movie.getPoster());
                     if (movie.getOverview() == "null") {
-                        movieItem.setOverview(MainActivity.no_overview);
+                        movieItem.setOverview(no_overview);
                     } else {
                         movieItem.setOverview(movie.getOverview());
                     }
@@ -117,19 +117,17 @@ public class GetMovies extends AsyncTask<String, Void, String> {
                     movieItem.setVoteAverage(movie.getVote_average());
                     movieItem.setPosterPath(movie.getPoster());
                     if (movie.getPoster() == "null") {
-                        MainActivity.imagesUrls.add(Utils.image_not_found);
+                        listener.addToImagesUrls(Utils.image_not_found);
                         movieItem.setPosterPath(Utils.image_not_found);
                     } else {
-                        MainActivity.imagesUrls.add(Utils.imageBaseURL + Utils.imageSize185 + movie.getPoster());
+                        listener.addToImagesUrls(Utils.imageBaseURL + Utils.imageSize185 + movie.getPoster());
                     }
-                    MainActivity.moviesArrayList.add(movieItem);
+                    listener.addToMoviesList(movieItem);
                     movieItem = null;
-                    MainActivity.PlaceholderFragment.imageAdapter.notifyDataSetChanged();
+                    listener.notifyAdapter();
                 }
             } else {
-                MainActivity.PlaceholderFragment.toast.setText("Something Wrong Happend");
-                MainActivity.PlaceholderFragment.toast.setDuration(Toast.LENGTH_SHORT);
-                MainActivity.PlaceholderFragment.toast.show();
+                listener.somethingWrongHappened();
             }
 
         } catch (JSONException e) {

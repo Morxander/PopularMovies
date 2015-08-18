@@ -23,10 +23,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity {
 
-    static public ArrayList<Movie> moviesArrayList;
-    static public ArrayList<String> imagesUrls;
-    static public String no_overview;
-    private static final String DETAILFRAGMENT_TAG = "DFTAG";
+//    static public
     private static boolean mTwoPane;
 
     @Override
@@ -48,7 +45,6 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -59,7 +55,6 @@ public class MainActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -78,13 +73,17 @@ public class MainActivity extends ActionBarActivity {
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment {
+    public static class PlaceholderFragment extends Fragment implements MainJobsInterface {
 
-        static ImageAdapter imageAdapter;
+        ImageAdapter imageAdapter;
         GridView gridview;
-        static Toast toast;
+        Toast toast;
         String sortingCriteria,sortingOrder;
         ProgressDialog progress;
+        final String DETAILFRAGMENT_TAG = "DFTAG";
+        ArrayList<String> imagesUrls;
+        ArrayList<Movie> moviesArrayList;
+        int SETTING_CODE = 666;
 
         public PlaceholderFragment() {
         }
@@ -95,43 +94,53 @@ public class MainActivity extends ActionBarActivity {
             super.onCreate(savedInstanceState);
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             setHasOptionsMenu(true);
+
             if (savedInstanceState == null) {
-                initComponents(rootView);
+                initComponents(rootView,true);
+                updateMovies(rootView);
+            }else{
+            initComponents(rootView,false);
+            moviesArrayList = savedInstanceState.getParcelableArrayList("moviesList");
+            imagesUrls = savedInstanceState.getStringArrayList("imagesLinks");
             }
-            updateMovies(rootView);
             setRetainInstance(true);
             return rootView;
         }
 
-        public void initComponents(View view) {
-            moviesArrayList = new ArrayList<Movie>();
-            imagesUrls = new ArrayList<String>();
-            no_overview = getString(R.string.no_overview);
+        public void initComponents(View view,boolean savedInstance) {
+            // If the movieArraylist and the imagesUrlsList are already exists or not?
+            if(savedInstance) {
+                moviesArrayList = new ArrayList<Movie>();
+                imagesUrls = new ArrayList<String>();
+            }
             gridview = (GridView) view.findViewById(R.id.gridview);
-            imageAdapter = new ImageAdapter(getActivity());
+            imageAdapter = new ImageAdapter(getActivity(),this);
             gridview.setAdapter(imageAdapter);
             gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> parent, View v,
                                         int position, long id) {
-                if (mTwoPane) {
-                    // In two-pane mode, show the detail view in this activity by
-                    // adding or replacing the detail fragment using a
-                    // fragment transaction.
-                    Bundle args = new Bundle();
-                    args.putInt("movie_id", moviesArrayList.get(position).getMovieId());
-                    args.putInt("movie_position",position);
-                    MovieDetails.PlaceholderDetailsFragment fragment = new MovieDetails.PlaceholderDetailsFragment();
-                    fragment.setArguments(args);
+                    if (mTwoPane) {
+                        // In two-pane mode, show the detail view in this activity by
+                        // adding or replacing the detail fragment using a
+                        // fragment transaction.
+                        Bundle args = new Bundle();
+                        args.putInt("movie_id", moviesArrayList.get(position).getMovieId());
+                        args.putInt("movie_position", position);
+                        args.putParcelableArrayList("moviesList",moviesArrayList);
+                        MovieDetails.PlaceholderDetailsFragment fragment = new MovieDetails.PlaceholderDetailsFragment();
+                        fragment.setArguments(args);
 
-                    getActivity().getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.movie_detail_container, fragment, DETAILFRAGMENT_TAG)
-                            .commit();
-                } else {
-                    Intent intent = new Intent(getActivity(), MovieDetails.class);
-                    intent.putExtra("movie_id",moviesArrayList.get(position).getMovieId());
-                    intent.putExtra("movie_position",position);
-                    startActivity(intent);
-                }
+                        getActivity().getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.movie_detail_container, fragment, DETAILFRAGMENT_TAG)
+                                .commit();
+                    } else {
+                        Intent intent = new Intent(getActivity(), MovieDetails.class);
+                        intent.putExtra("movie_id", moviesArrayList.get(position).getMovieId());
+                        intent.putExtra("movie_position", position);
+                        intent.putExtra("movie_title", moviesArrayList.get(position).getTitle());
+                        intent.putExtra("movie_poster", moviesArrayList.get(position).getPosterPath());
+                        startActivity(intent);
+                    }
 
                 }
             });
@@ -147,7 +156,7 @@ public class MainActivity extends ActionBarActivity {
                     getString(R.string.pref_sorting_order_default_value));
 
             sortingCriteria = sharedPrefs.getString(getString(R.string.pref_sorting_criteria_key), getString(R.string.pref_sorting_criteria_default_value));
-            new GetMovies().execute(sortingOrder, sortingCriteria, null);
+            new GetMovies().execute(sortingOrder, sortingCriteria, this);
             gridview.setAdapter(imageAdapter);
         }
 
@@ -166,7 +175,7 @@ public class MainActivity extends ActionBarActivity {
             //noinspection SimplifiableIfStatement
             if (id == R.id.action_fragment_settings) {
                 Intent intent = new Intent(getActivity(), SettingsActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, SETTING_CODE);
                 return true;
             }
 
@@ -175,25 +184,68 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onResume() {
-            Toast.makeText(getActivity(), "Updating", Toast.LENGTH_SHORT).show();
-            updateMovies(getView());
             super.onResume();
         }
 
+        @Override
+        public void onActivityResult(int requestCode, int resultCode, Intent data) {
+            super.onActivityResult(requestCode, resultCode, data);
+            if (requestCode == SETTING_CODE){
+                Toast.makeText(getActivity(), "Updating", Toast.LENGTH_SHORT).show();
+                updateMovies(getView());
+            }
+        }
+
+        @Override
+        public void onConnectionError() {
+            toast.setText("Connection Error");
+            toast.setDuration(Toast.LENGTH_SHORT);
+            toast.show();
+        }
+
+        @Override
+        public void somethingWrongHappened() {
+            toast.setText("Something Wrong Happend");
+            toast.setDuration(Toast.LENGTH_SHORT);
+            toast.show();
+        }
+
+        @Override
+        public void clearImagesUrls() {
+            imagesUrls.clear();
+        }
+
+        @Override
+        public void addToImagesUrls(String url) {
+            imagesUrls.add(url);
+        }
+
+        @Override
+        public void clearMoviesList() {
+            moviesArrayList.clear();
+        }
+
+        @Override
+        public void addToMoviesList(Movie movie) {
+            moviesArrayList.add(movie);
+        }
+
+        @Override
+        public void notifyAdapter() {
+            imageAdapter.notifyDataSetChanged();
+        }
+
+        public ArrayList<String> getImagesUrls() {
+            return  imagesUrls;
+        }
+
+        @Override
+        public void onSaveInstanceState(Bundle outState) {
+            super.onSaveInstanceState(outState);
+            outState.putParcelableArrayList("moviesList", moviesArrayList);
+            outState.putStringArrayList("imagesLinks",imagesUrls);
+        }
 
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList("moviesList", moviesArrayList);
-        outState.putStringArrayList("imagesLinks",imagesUrls);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        moviesArrayList = savedInstanceState.getParcelableArrayList("moviesList");
-        imagesUrls = savedInstanceState.getStringArrayList("imagesLinks");
-    }
 }
