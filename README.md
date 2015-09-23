@@ -7,14 +7,12 @@ This app made for [Android Nanodegree Program], Now the App has 3 screens :
   - Settings screen to allow the user to change the sorting settings.
 
 ### Version
-1.0.0
+2.0.0
 
 ### Libs
 * [Picasso] - powerful image downloading and caching library for Android
 
 ### TODOs
-  - Getting the movie's trailers and reviews
-  - Storing the movies on a database using SQLite.
   - Using content providers to getting the data from the database
   - Implementing Material Design
 
